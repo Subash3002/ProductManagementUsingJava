@@ -7,12 +7,16 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
 
+
         //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
         // to see how IntelliJ IDEA suggests fixing it.
-        String fileName="inventory.txt";
-        loadInventoryFromFile(fileName);
-
+//        String fileName="inventory.txt";
+//        loadInventoryFromFile(fileName);
+//        PostgreSQLConnection.createOrderTable();
+        MongoDBConnection.connectMongo();
+        MongoDBConnection.readProductsFromDatabase();
         Scanner sc=new Scanner(System.in);
+
         while(true){
             System.out.println("Press 1 for Seller | Press 2 for Customer | Press 3 to Exit");
             int choose=sc.nextInt();
@@ -22,9 +26,9 @@ public class Main {
                 String sellerName=sc.next();
                 Seller seller=new Seller(sellerName);
                 while (true){
-                    System.out.println("1.Add Product \n2.Remove Product \n3.update Quantity \n4.update Price \n5.update ProductName \n6.archive product \n7.display products");
+                    System.out.println("1.Add Product \n2.Remove Product \n3.update Quantity \n4.update Price \n5.update ProductName \n6.display products");
                     int ch=sc.nextInt();
-                    int productId;
+                    String productId;
                     switch (ch) {
                         case 1:
                             System.out.println("Product Name: ");
@@ -39,29 +43,31 @@ public class Main {
                                 System.out.println("Enter valid quantity");
                                 break;
                             }
-                            System.out.println("Product Price: ");
-                            float price = sc.nextFloat();
+                            System.out.println("Enter Product Price: ");
+                            double price = sc.nextDouble();
+                            System.out.println("Enter category name");
+                            String catId=sc.next();
+
                             if(price<=0){
                                 System.out.println("Enter valid price");
                                 break;
                             }
-                            Product product = new Product(productName, quantity, price);
+                            MongoDBConnection.addCategory(catId);
+                            int findId=MongoDBConnection.findMaxProductId();
+                            Product product = new Product("prod"+(findId+1),productName, quantity, price,catId);
                             seller.addProduct(product);
                             break;
 
                         case 2:
                             System.out.println("ProductId you want to Delete");
-                            productId = sc.nextInt();
-                            if(productId<=0){
-                                System.out.println("ProductId should be positive");
-                                break;
-                            }
+                            productId = sc.next();
+
                             seller.removeProduct(productId);
                             break;
 
                         case 3:
                             System.out.println("ProductId you want to update");
-                            productId = sc.nextInt();
+                            productId = sc.next();
                             System.out.println("Product Quantity");
                             int q = sc.nextInt();
                             seller.update(q, productId);
@@ -69,34 +75,29 @@ public class Main {
 
                         case 4:
                             System.out.println("ProductId you want to update");
-                            int pId = sc.nextInt();
+                            productId= sc.next();
                             System.out.println("Product Price");
-                            float prce = sc.nextFloat();
-                            seller.update(prce, pId);
+                            double prce = sc.nextDouble();
+                            seller.update(prce, productId);
                             break;
 
                         case 5:
                             System.out.println("ProductId you want to update");
-                            int pid = sc.nextInt();
+                            productId= sc.next();
                             System.out.println("Product Name");
                             String name = sc.next();
-                            seller.update(name, pid);
+                            seller.update(name, productId);
                             break;
+
 
                         case 6:
-                            System.out.println("ProductId you want to archive");
-                            productId = sc.nextInt();
-                            seller.archive(productId);
-                            break;
-
-                        case 7:
                             seller.displayProducts();
                             break;
 
                         default:
                             System.out.println("Invalid choice");
                     }
-                    System.out.println("Do you want to continue:(y/n)");
+                    System.out.println("Do you want to continue as seller:(y/n)");
                     char f=sc.next().charAt(0);
                     if(f=='n'){
                         break;
@@ -109,20 +110,33 @@ public class Main {
                 Customer customer=new Customer(customerName);
                 while (true) {
 
-                    System.out.println("1.Buy Product \n2.View Products \n3.view specific Product \n4.view cart ");
+                    System.out.println("1.Buy Product \n2.View Products \n3.view specific Product \n4.view Purchase History ");
                     int ch = sc.nextInt();
-
+                    String productId;
                     switch (ch) {
                         case 1:
-                            System.out.println("Enter ProductId: ");
-                            int pId = sc.nextInt();
-                            if(!(Product.products.containsKey(pId) && Product.products.get(pId).isExist())){
-                                System.out.println("ProductId Not Found");
-                                break;
+                            while(true){
+                                System.out.println("Enter ProductId: ");
+                                productId= sc.next();
+                                if(!(Product.products.containsKey(productId) && Product.products.get(productId).isExist())){
+                                    System.out.println("ProductId Not Found");
+                                    break;
+                                }
+                                System.out.println("Enter Quantity: ");
+                                int quantity = sc.nextInt();
+                                if(quantity<=0){
+                                    System.out.println("Invalid Quantity");
+                                    continue;
+                                }
+                                customer.buyProduct(productId, quantity);
+                                System.out.println("Buy more(y/n) :");
+                                String in=sc.next();
+                                if(in.equals("n")){
+                                    customer.addOrder();
+                                    break;
+                                }
                             }
-                            System.out.println("Enter Quantity: ");
-                            int quantity = sc.nextInt();
-                            customer.buyProduct(pId, quantity);
+
                             break;
 
                         case 2:
@@ -131,12 +145,12 @@ public class Main {
 
                         case 3:
                             System.out.println("Enter ProductId");
-                            int productId = sc.nextInt();
-                            customer.displayProduct(productId);
+                            productId = sc.next();
+                            customer.displayProducts(productId);
                             break;
 
                         case 4:
-                            customer.displayCart();
+                            PostgreSQLConnection.printAllOrders();
                             break;
 
 
@@ -144,7 +158,7 @@ public class Main {
                             System.out.println("Invalid choice");
 
                     }
-                    System.out.println("Do you want to continue:(y/n)");
+                    System.out.println("Do you want to continue as customer:(y/n)");
                     char f=sc.next().charAt(0);
                     if(f=='n'){
                         break;
@@ -159,29 +173,5 @@ public class Main {
 
 
     }
-    public static void loadInventoryFromFile(String fileName){
 
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-
-            reader.readLine();
-
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                int productId = Integer.parseInt(parts[0]);
-                String productName = parts[1];
-                int quantity = Integer.parseInt(parts[2]);
-                float price = Float.parseFloat(parts[3]);
-                boolean exists = Boolean.parseBoolean(parts[4].trim());
-
-
-                Product product = new Product(productId, productName, quantity, price, exists);
-                Product.products.put(productId, product);
-            }
-            System.out.println("Inventory loaded from " + fileName);
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
-        }
-    }
 }

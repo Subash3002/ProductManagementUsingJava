@@ -1,22 +1,35 @@
 
+import org.bson.Document;
+
 import java.util.HashMap;
 
 public class Product {
     private String productName;
-    private int productId;
+    private String productId;
     private int productQuantity;
-    private float productPrice;
+    private double productPrice;
     private boolean isExist=true;
+    private String categoryId;
 
-    static HashMap<Integer,Product> products=new HashMap<>();
-    public Product(String productName, int productQuantity, float productPrice) {
-        this.productName = productName;
-        this.productId=products.size()+1;
-        this.productQuantity = productQuantity;
-        this.productPrice = productPrice;
+    static HashMap<String,Product> products=new HashMap<>();
+
+    public String getCategoryId() {
+        return categoryId;
     }
 
-    public Product(int productId,String productName, int productQuantity, float productPrice, boolean isExist) {
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public Product(String productId,String productName, int productQuantity, double productPrice, String categoryId){
+        this.productName = productName;
+        this.productId=productId;
+        this.productQuantity = productQuantity;
+        this.productPrice = productPrice;
+        this.categoryId=categoryId;
+    }
+
+    public Product(String productId,String productName, int productQuantity, double productPrice, boolean isExist) {
         this.productName = productName;
         this.productId = productId;
         this.productQuantity = productQuantity;
@@ -48,11 +61,11 @@ public class Product {
         this.productQuantity = productQuantity;
     }
 
-    public float getProductPrice() {
+    public double getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(float productPrice) {
+    public void setProductPrice(double productPrice) {
         this.productPrice = productPrice;
     }
 
@@ -67,12 +80,20 @@ public class Product {
 
     }
 
-    public int getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
+    }
+
+    public static Product fromDocument(Document doc) {
+        String id = doc.getString("productId");
+        String name = doc.getString("productName");
+        Double price = doc.containsKey("productPrice") ? doc.getDouble("productPrice") : 0.0;
+        Integer quantity = doc.containsKey("productQuantity") ? doc.getInteger("productQuantity") : 0;
+        return new Product(id, name, quantity,price,true);
     }
 
 }

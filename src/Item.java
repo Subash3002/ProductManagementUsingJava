@@ -1,14 +1,26 @@
 public class Item {
+    private String productId;
     private String productName;
-    private int productId;
-    private int productQuantity;
-    private float productPrice;
+    private String orderId;
+    private String categoryId;
+    public String getOrderId() {
+        return orderId;
+    }
 
-    public Item(Product product, int quantity){
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    private int productQuantity;
+    private double productPrice;
+
+    public Item(Product product, int quantity,String orderId){
         this.productName=product.getProductName();
-        this.productId=product.getProductId();
+        this.productId= product.getProductId();
+        this.orderId=orderId;
         this.productPrice=product.getProductPrice();
         this.productQuantity=quantity;
+        this.categoryId=product.getCategoryId();
     }
 
     public String getProductName() {
@@ -19,11 +31,11 @@ public class Item {
         this.productName = productName;
     }
 
-    public int getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
     }
 
@@ -35,11 +47,11 @@ public class Item {
         this.productQuantity = productQuantity;
     }
 
-    public float getProductPrice() {
+    public double getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(float productPrice) {
+    public void setProductPrice(double productPrice) {
         this.productPrice = productPrice;
     }
 }
